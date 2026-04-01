@@ -7,7 +7,7 @@ terraform {
       version = "~> 4.56"
     }
   }
-
+  
   backend "azurerm" {
     resource_group_name  = "Azure-DevOps-RG"
     storage_account_name = "devstorageaccount2026"
@@ -16,6 +16,7 @@ terraform {
 
     # Tells the backend to also use the Managed Identity
     use_msi = true
+  }
 }
 
 provider "azurerm" {
