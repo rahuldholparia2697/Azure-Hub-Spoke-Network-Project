@@ -1,0 +1,36 @@
+name: 'Azure Terraform Destroy Pipeline'
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./Terraform-code
+
+jobs:
+  destroy:
+    name: 'Terraform Destroy'
+    runs-on: self-hosted
+
+    env:
+      ARM_USE_MSI: true
+      ARM_SUBSCRIPTION_ID: '99c0acb2-ff53-4ac2-8e99-071411ed7ee4'
+      ARM_TENANT_ID: 'a19d6cd0-cccb-447a-ae75-7d3ee4eaa2bb'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          # Uses the VM's system-assigned identity to login
+          auth-type: IDENTITY
+          tenant-id: 'a19d6cd0-cccb-447a-ae75-7d3ee4eaa2bb'
+          subscription-id: '99c0acb2-ff53-4ac2-8e99-071411ed7ee4'
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
