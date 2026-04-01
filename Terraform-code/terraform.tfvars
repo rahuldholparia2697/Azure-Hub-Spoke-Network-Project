@@ -29,8 +29,8 @@ spoke_vnets = {
   }
 }
 
-enable_vpn_gateway         = false
-enable_bastion             = false
+enable_vpn_gateway         = true
+enable_bastion             = true
 on_premises_address_spaces = ["192.168.0.0/16"]
 
 tags = {
