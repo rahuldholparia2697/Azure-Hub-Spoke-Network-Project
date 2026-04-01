@@ -1,0 +1,84 @@
+name: 'Azure Terraform Multi-Stage'
+
+on:
+  push:
+    branches: ['master']
+
+defaults:
+  run:
+    working-directory: ./Terraform-code
+
+jobs:
+  plan:
+    name: 'Terraform Plan'
+    runs-on: self-hosted
+
+    env:
+      ARM_USE_MSI: true
+      ARM_SUBSCRIPTION_ID: '99c0acb2-ff53-4ac2-8e99-071411ed7ee4'
+      ARM_TENANT_ID: 'a19d6cd0-cccb-447a-ae75-7d3ee4eaa2bb'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          # Uses the VM's system-assigned identity to login
+          auth-type: IDENTITY
+          tenant-id: 'a19d6cd0-cccb-447a-ae75-7d3ee4eaa2bb'
+          subscription-id: '99c0acb2-ff53-4ac2-8e99-071411ed7ee4'
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out="plan.tfplan"
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ./Terraform-code/plan.tfplan
+
+  apply:
+    runs-on: self-hosted
+    needs: plan
+    if: github.ref == 'refs/heads/master'
+    environment: production
+
+    env:
+      ARM_USE_MSI: true
+      ARM_SUBSCRIPTION_ID: '99c0acb2-ff53-4ac2-8e99-071411ed7ee4'
+      ARM_TENANT_ID: 'a19d6cd0-cccb-447a-ae75-7d3ee4eaa2bb'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          # Uses the VM's system-assigned identity to login
+          auth-type: IDENTITY
+          tenant-id: 'a19d6cd0-cccb-447a-ae75-7d3ee4eaa2bb'
+          subscription-id: '99c0acb2-ff53-4ac2-8e99-071411ed7ee4'
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ./Terraform-code
+
+      - name: Terraform Apply
+        run: terraform apply plan.tfplan
