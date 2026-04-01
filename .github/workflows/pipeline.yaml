@@ -1,4 +1,4 @@
-name: 'Azure Terraform Multi-Stage'
+name: 'Azure Terraform Deployment Pipeline'
 
 on:
   push:
